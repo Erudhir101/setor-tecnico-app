@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { getDaysInMonth, isCurrentMonth, formatDateKey } from '@/lib/utils'
 import MonthlyDashboard from '@/components/MonthlyDashboard'
+import { ensureMonthRows } from '@/actions/seed'
 import type {
   BanhoHistologico,
   BateriaHE,
@@ -79,6 +80,24 @@ export default async function MonthPage({ params }: Props) {
     sb.from('arquivo_citologia').select('*').gte('date', startDate).lte('date', endDate),
     sb.from('topografias').select('*').gte('date', startDate).lte('date', endDate),
   ])
+
+  const allDateKeys = days.map(formatDateKey)
+
+  await ensureMonthRows(allDateKeys, {
+    banho_histologico: (banhoData ?? []).map((r) => r.date),
+    bateria_he: (bateriaHeData ?? []).map((r) => r.date),
+    bateria_papanicolau: (bateriaPapData ?? []).map((r) => r.date),
+    central_inclusao: (centralData ?? []).map((r) => r.date),
+    controle_coloracao_pap: (ccPapData ?? []).map((r) => r.date),
+    controle_coloracao_he: (ccHeData ?? []).map((r) => r.date),
+    estufa_geladeira: (estufaData ?? []).map((r) => r.date),
+    parafina: (parafinaData ?? []).map((r) => r.date),
+    processador_tecidos: (processadorData ?? []).map((r) => r.date),
+    produtividade: (produtividadeData ?? []).map((r) => r.date),
+    programacao_processador: (programacaoData ?? []).map((r) => r.date),
+    arquivo_citologia: (arquivoCitologiaData ?? []).map((r) => r.date),
+    topografias: (topografiasData ?? []).map((r) => r.date),
+  })
 
   const data: AllTableData = {
     banhoHistologico: toMap<BanhoHistologico>(banhoData),
